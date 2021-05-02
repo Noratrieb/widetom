@@ -1,3 +1,5 @@
+# if a message contains the keyword on the left, w i d e t o m will react with the emote on the right
+# the emote name has to be the keyword
 emotes = [
     ["conny", 838137360667508786],
     ["rene", 832636011917606912],
@@ -5,4 +7,5 @@ emotes = [
     ["nick", 816429590687776839],
     ["nils", 816429379654516796],
     ["tom", 811324632082415626],
+    ["thomas", 803607136000802827],
 ]

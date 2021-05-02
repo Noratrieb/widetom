@@ -29,12 +29,12 @@ lazy_static! {
 
 #[hook]
 pub async fn normal_message(ctx: &Context, msg: &Message) {
-    if msg.content == "tom" {
+    if msg.content.to_lowercase() == "tom" {
         reply(" <:tom:811324632082415626>", &msg, &ctx).await;
     }
 
     for (name, id) in REACTION_EMOTES.iter() {
-        if msg.content.contains(name) {
+        if msg.content.to_lowercase().contains(name) {
             if let Err(why) = msg.react(&ctx.http, ReactionType::Custom {
                 animated: false,
                 id: *id,
