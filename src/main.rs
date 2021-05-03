@@ -7,8 +7,7 @@ use serenity::{
     prelude::*,
 };
 use serenity::client::Context;
-use serenity::framework::standard::{Args, CommandGroup, CommandResult, help_commands, HelpOptions, macros::{command, group, help},
-};
+use serenity::framework::standard::{Args, CommandGroup, CommandResult, help_commands, HelpOptions, macros::{command, group, help}};
 use serenity::framework::StandardFramework;
 use serenity::http::Http;
 use serenity::model::id::UserId;

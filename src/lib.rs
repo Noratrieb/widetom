@@ -7,6 +7,7 @@ use serenity::framework::standard::{macros::hook};
 use serenity::model::channel::{Message, ReactionType};
 use serenity::model::id::EmojiId;
 use toml::Value;
+use fancy_regex::Regex;
 
 lazy_static! {
     static ref REACTION_EMOTES: HashMap<String, EmojiId> = {
@@ -24,13 +25,39 @@ lazy_static! {
         }
         m
     };
+
+    static ref RESPONSES: HashMap<String, String> = {
+        let err = "Invalid config file";
+        let mut m = HashMap::new();
+
+        let config = fs::read_to_string("config.toml").expect("Config file not found. Add 'config.toml' to this directory");
+        let value = config.parse::<Value>().expect(err);
+        let emotes = value.get("responses").expect(err);
+
+        for v in emotes.as_array().expect(err) {
+            let trigger = v[0].as_str().expect(err).to_string();
+            let response = v[1].as_str().expect(err).to_string();
+            m.insert(trigger, response);
+        }
+        m
+    };
 }
 
 
 #[hook]
 pub async fn normal_message(ctx: &Context, msg: &Message) {
-    if msg.content.to_lowercase() == "tom" {
-        reply(" <:tom:811324632082415626>", &msg, &ctx).await;
+    lazy_static! {
+        static ref TOM_REGEX: Regex = Regex::new(r"(?<=^|\D)(\d{6})(?=\D|$)").unwrap();
+    }
+
+    if let Some(m) = TOM_REGEX.find(&msg.content).unwrap() {
+        reply(&*format!("<https://nhentai.net/g/{}/>", m.as_str()), &msg, &ctx).await;
+    }
+
+    for (trigger, answer) in RESPONSES.iter() {
+        if msg.content.to_lowercase() == *trigger {
+            reply(answer, &msg, &ctx).await;
+        }
     }
 
     for (name, id) in REACTION_EMOTES.iter() {

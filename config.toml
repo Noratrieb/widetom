@@ -9,3 +9,9 @@ emotes = [
     ["tom", 811324632082415626],
     ["thomas", 803607136000802827],
 ]
+
+# if a message is a trigger (equals, not contains) then respond with the answer
+responses = [
+    ["tom", "<:tom:811324632082415626>"],
+    ["hui", "PRAISE hUI, THE ALMIGHTY OR PERISH AS FOOLS!!!"],
+]
