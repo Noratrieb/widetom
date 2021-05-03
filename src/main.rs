@@ -14,7 +14,7 @@ use serenity::model::id::UserId;
 use serenity::utils::{content_safe, ContentSafeOptions};
 use uwuifier::uwuify_str_sse;
 
-use widertom::normal_message;
+use widertom::{normal_message, reply};
 
 #[group]
 #[commands(say)]
@@ -26,6 +26,11 @@ struct General;
 #[description = "meme commands"]
 struct Meme;
 
+#[group]
+#[commands(shutdown)]
+#[owners_only]
+#[description = "bot admin commands"]
+struct Admin;
 
 struct Handler;
 
@@ -39,7 +44,6 @@ impl EventHandler for Handler {
 
 #[tokio::main]
 async fn main() {
-
     let token = fs::read_to_string("bot_token")
         .expect("Expected bot token in file 'bot_token'");
 
@@ -48,11 +52,8 @@ async fn main() {
     let (owners, bot_id) = match http.get_current_application_info().await {
         Ok(info) => {
             let mut owners = HashSet::new();
-            if let Some(team) = info.team {
-                owners.insert(team.owner_user_id);
-            } else {
-                owners.insert(info.owner.id);
-            }
+            owners.insert(UserId(414755070161453076)); //nils
+            owners.insert(UserId(265849018662387712)); //yuki
             match http.get_current_user().await {
                 Ok(bot_id) => (owners, bot_id.id),
                 Err(why) => panic!("Could not access the bot id: {:?}", why),
@@ -72,7 +73,8 @@ async fn main() {
         .normal_message(normal_message)
         .help(&MY_HELP)
         .group(&GENERAL_GROUP)
-        .group(&MEME_GROUP);
+        .group(&MEME_GROUP)
+        .group(&ADMIN_GROUP);
 
     let mut client = Client::builder(&token)
         .event_handler(Handler)
@@ -107,6 +109,12 @@ async fn uwuify(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let uwu = uwuify_str_sse(args.rest());
     msg.channel_id.say(&ctx.http, uwu).await?;
     Ok(())
+}
+
+#[command]
+async fn shutdown(ctx: &Context, msg: &Message, _: Args) -> CommandResult {
+    reply("<:tom:811324632082415626> bye <:tom:811324632082415626>", &msg, &ctx).await;
+    std::process::exit(0);
 }
 
 
