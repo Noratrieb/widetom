@@ -50,7 +50,7 @@ async fn main() {
     let http = Http::new_with_token(&token);
 
     let (owners, bot_id) = match http.get_current_application_info().await {
-        Ok(info) => {
+        Ok(_) => {
             let mut owners = HashSet::new();
             owners.insert(UserId(414755070161453076)); //nils
             owners.insert(UserId(265849018662387712)); //yuki
