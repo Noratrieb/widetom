@@ -9,34 +9,34 @@ use serenity::model::id::EmojiId;
 use toml::Value;
 use fancy_regex::Regex;
 
+pub static CONFIG_ERR: &'static str = "Invalid config file";
+
 lazy_static! {
-    static ref REACTION_EMOTES: HashMap<String, EmojiId> = {
-        let err = "Invalid config file";
-        let mut m = HashMap::new();
-
+    pub static ref CONFIG: Value = {
         let config = fs::read_to_string("config.toml").expect("Config file not found. Add 'config.toml' to this directory");
-        let value = config.parse::<Value>().expect(err);
-        let emotes = value.get("emotes").expect(err);
+        config.parse::<Value>().expect(CONFIG_ERR)
+    };
 
-        for v in emotes.as_array().expect(err) {
-            let name = v[0].as_str().expect(err).to_string();
-            let id = EmojiId(v[1].as_integer().expect(err).clone() as u64);
+    static ref REACTION_EMOTES: HashMap<String, EmojiId> = {
+        let mut m = HashMap::new();
+        let emotes = CONFIG.get("emotes").expect(CONFIG_ERR);
+
+        for v in emotes.as_array().expect(CONFIG_ERR) {
+            let name = v[0].as_str().expect(CONFIG_ERR).to_string();
+            let id = EmojiId(v[1].as_integer().expect(CONFIG_ERR).clone() as u64);
             m.insert(name, id);
         }
         m
     };
 
     static ref RESPONSES: HashMap<String, String> = {
-        let err = "Invalid config file";
         let mut m = HashMap::new();
 
-        let config = fs::read_to_string("config.toml").expect("Config file not found. Add 'config.toml' to this directory");
-        let value = config.parse::<Value>().expect(err);
-        let emotes = value.get("responses").expect(err);
+        let emotes = CONFIG.get("responses").expect(CONFIG_ERR);
 
-        for v in emotes.as_array().expect(err) {
-            let trigger = v[0].as_str().expect(err).to_string();
-            let response = v[1].as_str().expect(err).to_string();
+        for v in emotes.as_array().expect(CONFIG_ERR) {
+            let trigger = v[0].as_str().expect(CONFIG_ERR).to_string();
+            let response = v[1].as_str().expect(CONFIG_ERR).to_string();
             m.insert(trigger, response);
         }
         m

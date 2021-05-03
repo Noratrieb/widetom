@@ -13,8 +13,11 @@ use serenity::http::Http;
 use serenity::model::id::UserId;
 use serenity::utils::{content_safe, ContentSafeOptions};
 use uwuifier::uwuify_str_sse;
+use lazy_static::lazy_static;
 
-use widertom::{normal_message, reply};
+use widertom::{normal_message, reply, CONFIG, CONFIG_ERR};
+use rand::Rng;
+use toml::Value;
 
 #[group]
 #[commands(say)]
@@ -22,7 +25,7 @@ use widertom::{normal_message, reply};
 struct General;
 
 #[group]
-#[commands(uwuify)]
+#[commands(uwuify, xp)]
 #[description = "meme commands"]
 struct Meme;
 
@@ -117,6 +120,17 @@ async fn shutdown(ctx: &Context, msg: &Message, _: Args) -> CommandResult {
     std::process::exit(0);
 }
 
+
+#[command]
+async fn xp(ctx: &Context, msg: &Message, _: Args) -> CommandResult {
+    lazy_static! {
+        static ref XP_RESPONSES: &'static Vec<Value> = CONFIG.get("xp").expect(CONFIG_ERR).as_array().expect(CONFIG_ERR);
+    }
+    let index = rand::thread_rng().gen_range(0..XP_RESPONSES.len());
+    let random_value = XP_RESPONSES[index].as_str().expect(CONFIG_ERR);
+    msg.channel_id.say(&ctx.http, random_value).await?;
+    Ok(())
+}
 
 #[help]
 #[individual_command_tip =

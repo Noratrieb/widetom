@@ -15,3 +15,9 @@ responses = [
     ["tom", "<:tom:811324632082415626>"],
     ["hui", "PRAISE hUI, THE ALMIGHTY OR PERISH AS FOOLS!!!"],
 ]
+
+# xp application zitate for the xp command
+xp = ["Bin n Freund von Brit", "I will learn", "sehr gute experience can approve",
+    "Keine Ahnung Bro", "Das hab ich mich actually auch schon gefragt", "Yo le diría que desactivara el modulo Autonick y reescribiera el nombre sin la parte del nivel",
+    "eject the bot", "i'm getting held gunpoint to fill out this formular and i have no clue why...", "what Bot", "sex", "dude wtf why are fucjk you", "dreckscode",
+    "ich brauche immer #command-testing, sonst recht gut", "#faq you", "<leere>", "I would call myself a friend of Conny"]
