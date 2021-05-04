@@ -1,4 +1,7 @@
-use std::collections::HashSet;
+mod general;
+mod commands;
+
+use std::collections::{HashSet, HashMap};
 use std::fs;
 
 use serenity::{
@@ -10,14 +13,20 @@ use serenity::client::Context;
 use serenity::framework::standard::{Args, CommandGroup, CommandResult, help_commands, HelpOptions, macros::{command, group, help}};
 use serenity::framework::StandardFramework;
 use serenity::http::Http;
-use serenity::model::id::UserId;
+use serenity::model::id::{UserId, ChannelId};
 use serenity::utils::{content_safe, ContentSafeOptions};
 use uwuifier::uwuify_str_sse;
 use lazy_static::lazy_static;
 
-use widertom::{normal_message, reply, CONFIG, CONFIG_ERR};
 use rand::Rng;
 use toml::Value;
+use crate::general::{normal_message, CONFIG_ERR, reply, CONFIG};
+
+pub struct LastMessageInChannel;
+
+impl TypeMapKey for LastMessageInChannel {
+    type Value = HashMap<ChannelId, String>;
+}
 
 #[group]
 #[commands(say)]
@@ -85,6 +94,11 @@ async fn main() {
         .await
         .expect("Err creating client");
 
+    {
+        let mut data = client.data.write().await;
+        data.insert::<LastMessageInChannel>(HashMap::default());
+    }
+
     if let Err(why) = client.start().await {
         println!("Client error: {:?}", why);
     }
@@ -108,9 +122,25 @@ async fn say(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 }
 
 #[command]
+#[description("uwuifies the arguments, or the last message in the channel if no args are supplied")]
 async fn uwuify(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
-    let uwu = uwuify_str_sse(args.rest());
-    msg.channel_id.say(&ctx.http, uwu).await?;
+    if args.is_empty() {
+        let mut data = ctx.data.write().await;
+        let map = data.get_mut::<LastMessageInChannel>().expect("No LastMessageInChannel in TypeMap");
+        let old_message = map.get(&msg.channel_id);
+        match old_message {
+            Some(s) => {
+                let uwu = uwuify_str_sse(s);
+                msg.channel_id.say(&ctx.http, uwu).await?;
+            }
+            None => {
+                msg.channel_id.say(&ctx.http, "Could not find last message.").await?;
+            }
+        }
+    } else {
+        let uwu = uwuify_str_sse(args.rest());
+        msg.channel_id.say(&ctx.http, uwu).await?;
+    }
     Ok(())
 }
 

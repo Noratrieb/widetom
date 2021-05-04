@@ -8,6 +8,8 @@ use serenity::model::channel::{Message, ReactionType};
 use serenity::model::id::EmojiId;
 use toml::Value;
 use fancy_regex::Regex;
+use crate::LastMessageInChannel;
+
 
 pub static CONFIG_ERR: &'static str = "Invalid config file";
 
@@ -46,6 +48,11 @@ lazy_static! {
 
 #[hook]
 pub async fn normal_message(ctx: &Context, msg: &Message) {
+
+    let mut data = ctx.data.write().await;
+    let map = data.get_mut::<LastMessageInChannel>().expect("LastMessageInChannel not found");
+    map.insert(msg.channel_id.clone(), msg.content.clone());
+
     lazy_static! {
         static ref TOM_REGEX: Regex = Regex::new(r"(?<=^|\D)(\d{6})(?=\D|$)").unwrap();
     }
