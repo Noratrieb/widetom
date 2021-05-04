@@ -1,15 +1,15 @@
 use std::collections::HashMap;
 use std::fs;
 
+use fancy_regex::Regex;
 use lazy_static::lazy_static;
 use serenity::client::Context;
 use serenity::framework::standard::{macros::hook};
 use serenity::model::channel::{Message, ReactionType};
 use serenity::model::id::EmojiId;
 use toml::Value;
-use fancy_regex::Regex;
-use crate::LastMessageInChannel;
 
+use crate::LastMessageInChannel;
 
 pub static CONFIG_ERR: &'static str = "Invalid config file";
 
