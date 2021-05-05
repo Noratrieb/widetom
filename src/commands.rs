@@ -52,7 +52,10 @@ async fn say(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 #[command]
 #[description("uwuifies the arguments, or the last message in the channel if no args are supplied")]
 async fn uwuify(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
-    if args.is_empty() {
+    if let Some(parent) = &msg.referenced_message {
+        let uwu = uwuify_str_sse(&*parent.content);
+        msg.channel_id.say(&ctx.http, uwu).await?;
+    } else if args.is_empty() {
         let mut data = ctx.data.write().await;
         let map = data.get_mut::<LastMessageInChannel>().expect("No LastMessageInChannel in TypeMap");
         let old_message = map.get(&msg.channel_id);
