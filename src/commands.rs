@@ -44,6 +44,7 @@ async fn say(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     };
 
     let content = content_safe(&ctx.cache, &args.rest(), &settings).await;
+    msg.delete(&ctx.http).await?;
     msg.channel_id.say(&ctx.http, &content).await?;
     Ok(())
 }
