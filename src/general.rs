@@ -58,7 +58,8 @@ pub async fn normal_message(ctx: &Context, msg: &Message) {
     }
 
     if let Some(m) = TOM_REGEX.find(&msg.content).unwrap() {
-        reply(&*format!("<https://nhentai.net/g/{}/>", m.as_str()), &msg, &ctx).await;
+        let number = m.as_str().parse::<u32>().expect("matched regex, so it is valid");
+        reply(&*format!("<https://nhentai.net/g/{}/>", number), &msg, &ctx).await;
     }
 
     for (trigger, answer) in RESPONSES.iter() {
