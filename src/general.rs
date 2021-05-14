@@ -45,10 +45,8 @@ lazy_static! {
     };
 }
 
-
 #[hook]
 pub async fn normal_message(ctx: &Context, msg: &Message) {
-
     let mut data = ctx.data.write().await;
     let map = data.get_mut::<LastMessageInChannel>().expect("LastMessageInChannel not found");
     map.insert(msg.channel_id.clone(), msg.content.clone());
@@ -57,9 +55,13 @@ pub async fn normal_message(ctx: &Context, msg: &Message) {
         static ref TOM_REGEX: Regex = Regex::new(r"(?<=^|\D)(\d{6})(?=\D|$)").unwrap();
     }
 
+    let is_nsfw = msg.channel_id.to_channel(&ctx.http).await.expect("may be nsfw lol").is_nsfw();
+
     if let Some(m) = TOM_REGEX.find(&msg.content).unwrap() {
-        let number = m.as_str().parse::<u32>().expect("matched regex, so it is valid");
-        reply(&*format!("<https://nhentai.net/g/{}/>", number), &msg, &ctx).await;
+        if is_nsfw {
+            let number = m.as_str().parse::<u32>().expect("matched regex, so it is valid");
+            reply(&*format!("<https://nhentai.net/g/{}/>", number), &msg, &ctx).await;
+        }
     }
 
     for (trigger, answer) in RESPONSES.iter() {
