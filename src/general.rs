@@ -19,7 +19,7 @@ lazy_static! {
         config.parse::<Value>().expect(CONFIG_ERR)
     };
 
-    static ref REACTION_EMOTES: HashMap<String, EmojiId> = {
+    pub static ref REACTION_EMOTES: HashMap<String, EmojiId> = {
         let mut m = HashMap::new();
         let emotes = CONFIG.get("emotes").expect(CONFIG_ERR);
 

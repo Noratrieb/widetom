@@ -10,11 +10,11 @@ use serenity::utils::{content_safe, ContentSafeOptions};
 use toml::Value;
 use uwuifier::uwuify_str_sse;
 
-use crate::general::{CONFIG, CONFIG_ERR, reply};
+use crate::general::{REACTION_EMOTES, CONFIG, CONFIG_ERR, reply};
 use crate::LastMessageInChannel;
 
 #[group]
-#[commands(say)]
+#[commands(say, list)]
 #[description = "General widetom commands"]
 struct General;
 
@@ -29,6 +29,21 @@ struct Meme;
 #[description = "bot admin commands"]
 struct Admin;
 
+
+#[command]
+#[description("lists all the commands")]
+async fn list(ctx: &Context, msg: &Message, _: Args) -> CommandResult {
+    msg.channel_id.send_message(&ctx.http, |msg| {
+        msg.embed(|e| {
+            e.title("Widetom reaction emotes");
+            e.fields(REACTION_EMOTES.iter()
+                .map(|em| (em.0, format!("<:{}:{}>", em.0, em.1.0), false))
+            );
+            e
+        })
+    }).await?;
+    Ok(())
+}
 
 #[command]
 #[description("say something")]
