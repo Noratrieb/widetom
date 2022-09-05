@@ -4,7 +4,7 @@ use std::fs;
 use fancy_regex::Regex;
 use lazy_static::lazy_static;
 use serenity::client::Context;
-use serenity::framework::standard::{macros::hook};
+use serenity::framework::standard::macros::hook;
 use serenity::model::channel::{Message, ReactionType};
 use serenity::model::id::EmojiId;
 use toml::Value;
@@ -15,10 +15,12 @@ pub static CONFIG_ERR: &'static str = "Invalid config file";
 
 lazy_static! {
     pub static ref CONFIG: Value = {
-        let config = fs::read_to_string("config.toml").expect("Config file not found. Add 'config.toml' to this directory");
+        let config_path =
+            std::env::var("CONFIG_PATH").unwrap_or_else(|_| "config.toml".to_string());
+        let config = fs::read_to_string(config_path)
+            .expect("Config file not found. Add 'config.toml' to this directory");
         config.parse::<Value>().expect(CONFIG_ERR)
     };
-
     pub static ref REACTION_EMOTES: HashMap<String, EmojiId> = {
         let mut m = HashMap::new();
         let emotes = CONFIG.get("emotes").expect(CONFIG_ERR);
@@ -30,7 +32,6 @@ lazy_static! {
         }
         m
     };
-
     static ref RESPONSES: HashMap<String, String> = {
         let mut m = HashMap::new();
 
@@ -48,18 +49,28 @@ lazy_static! {
 #[hook]
 pub async fn normal_message(ctx: &Context, msg: &Message) {
     let mut data = ctx.data.write().await;
-    let map = data.get_mut::<LastMessageInChannel>().expect("LastMessageInChannel not found");
+    let map = data
+        .get_mut::<LastMessageInChannel>()
+        .expect("LastMessageInChannel not found");
     map.insert(msg.channel_id.clone(), msg.content.clone());
 
     lazy_static! {
         static ref TOM_REGEX: Regex = Regex::new(r"(?<=^|\D)(\d{6})(?=\D|$)").unwrap();
     }
 
-    let is_nsfw = msg.channel_id.to_channel(&ctx.http).await.expect("may be nsfw lol").is_nsfw();
+    let is_nsfw = msg
+        .channel_id
+        .to_channel(&ctx.http)
+        .await
+        .expect("may be nsfw lol")
+        .is_nsfw();
 
     if let Some(m) = TOM_REGEX.find(&msg.content).unwrap() {
         if is_nsfw {
-            let number = m.as_str().parse::<u32>().expect("matched regex, so it is valid");
+            let number = m
+                .as_str()
+                .parse::<u32>()
+                .expect("matched regex, so it is valid");
             reply(&*format!("<https://nhentai.net/g/{}/>", number), &msg, &ctx).await;
         }
     }
@@ -72,11 +83,17 @@ pub async fn normal_message(ctx: &Context, msg: &Message) {
 
     for (name, id) in REACTION_EMOTES.iter() {
         if msg.content.to_lowercase().contains(name) {
-            if let Err(why) = msg.react(&ctx.http, ReactionType::Custom {
-                animated: false,
-                id: *id,
-                name: Some(name.to_string()),
-            }).await {
+            if let Err(why) = msg
+                .react(
+                    &ctx.http,
+                    ReactionType::Custom {
+                        animated: false,
+                        id: *id,
+                        name: Some(name.to_string()),
+                    },
+                )
+                .await
+            {
                 println!("Error reacting: {}", why);
             }
         }

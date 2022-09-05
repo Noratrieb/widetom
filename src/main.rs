@@ -1,17 +1,17 @@
 use std::collections::{HashMap, HashSet};
 use std::fs;
 
-use serenity::{async_trait, model::gateway::Ready, prelude::*};
 use serenity::client::Context;
 use serenity::framework::StandardFramework;
 use serenity::http::Http;
 use serenity::model::id::{ChannelId, UserId};
+use serenity::{async_trait, model::gateway::Ready, prelude::*};
 
 use crate::commands::{ADMIN_GROUP, GENERAL_GROUP, MEME_GROUP, MY_HELP};
 use crate::general::normal_message;
 
-mod general;
 mod commands;
+mod general;
 
 pub struct LastMessageInChannel;
 
@@ -28,11 +28,11 @@ impl EventHandler for Handler {
     }
 }
 
-
 #[tokio::main]
 async fn main() {
-    let token = fs::read_to_string("bot_token")
-        .expect("Expected bot token in file 'bot_token'");
+    let token_path = std::env::var("BOT_TOKEN_PATH").unwrap_or_else(|_| "bot_token".to_string());
+    let token = fs::read_to_string(token_path).expect("Expected bot token in file 'bot_token'");
+    let token = token.trim();
 
     let http = Http::new_with_token(&token);
 
@@ -50,13 +50,13 @@ async fn main() {
     };
 
     let framework = StandardFramework::new()
-        .configure(|c| c
-            .with_whitespace(false)
-            .on_mention(Some(bot_id))
-            .prefix("<:tom:811324632082415626> ")
-            .delimiter(" ")
-            .owners(owners)
-        )
+        .configure(|c| {
+            c.with_whitespace(false)
+                .on_mention(Some(bot_id))
+                .prefix("<:tom:811324632082415626> ")
+                .delimiter(" ")
+                .owners(owners)
+        })
         .normal_message(normal_message)
         .help(&MY_HELP)
         .group(&GENERAL_GROUP)
