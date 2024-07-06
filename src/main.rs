@@ -36,18 +36,16 @@ async fn main() {
 
     let http = Http::new_with_token(&token);
 
-    let (owners, bot_id) = match http.get_current_application_info().await {
-        Ok(_) => {
-            let mut owners = HashSet::new();
-            owners.insert(UserId(414755070161453076)); //nils
-            owners.insert(UserId(265849018662387712)); //yuki
-            match http.get_current_user().await {
-                Ok(bot_id) => (owners, bot_id.id),
-                Err(why) => panic!("Could not access the bot id: {:?}", why),
-            }
-        }
-        Err(why) => panic!("Could not access application info: {:?}", why),
-    };
+    http.get_current_application_info()
+        .await
+        .expect("could not access application info");
+    let bot_id = http
+        .get_current_user()
+        .await
+        .expect("could not access the bot ID")
+        .id;
+
+    let owners = HashSet::from([UserId(414755070161453076), UserId(265849018662387712)]);
 
     let framework = StandardFramework::new()
         .configure(|c| {
