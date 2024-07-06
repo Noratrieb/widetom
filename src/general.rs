@@ -27,7 +27,7 @@ lazy_static! {
 
         for v in emotes.as_array().expect(CONFIG_ERR) {
             let name = v[0].as_str().expect(CONFIG_ERR).to_string();
-            let id = EmojiId(v[1].as_integer().expect(CONFIG_ERR).clone() as u64);
+            let id = EmojiId::new(v[1].as_integer().expect(CONFIG_ERR).clone() as u64);
             m.insert(name, id);
         }
         m

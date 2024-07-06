@@ -2,15 +2,20 @@ use std::collections::HashSet;
 
 use lazy_static::lazy_static;
 use rand::Rng;
+use serenity::all::{CreateEmbed, CreateMessage};
 use serenity::client::Context;
-use serenity::framework::standard::{Args, CommandGroup, CommandResult, help_commands, HelpOptions, macros::{command, group, help}};
+use serenity::framework::standard::{
+    help_commands,
+    macros::{command, group, help},
+    Args, CommandGroup, CommandResult, HelpOptions,
+};
 use serenity::model::channel::Message;
 use serenity::model::id::UserId;
 use serenity::utils::{content_safe, ContentSafeOptions};
 use toml::Value;
 use uwuifier::uwuify_str_sse;
 
-use crate::general::{REACTION_EMOTES, CONFIG, CONFIG_ERR, reply};
+use crate::general::{reply, CONFIG, CONFIG_ERR, REACTION_EMOTES};
 use crate::LastMessageInChannel;
 
 #[group]
@@ -29,19 +34,21 @@ struct Meme;
 #[description = "bot admin commands"]
 struct Admin;
 
-
 #[command]
 #[description("lists all the commands")]
 async fn list(ctx: &Context, msg: &Message, _: Args) -> CommandResult {
-    msg.channel_id.send_message(&ctx.http, |msg| {
-        msg.embed(|e| {
-            e.title("Widetom reaction emotes");
-            e.fields(REACTION_EMOTES.iter()
-                .map(|em| (em.0, format!("<:{}:{}>", em.0, em.1.0), false))
-            );
-            e
-        })
-    }).await?;
+    msg.channel_id
+        .send_message(
+            &ctx.http,
+            CreateMessage::new().embed(
+                CreateEmbed::new().title("Widetom reaction emotes").fields(
+                    REACTION_EMOTES
+                        .iter()
+                        .map(|em| (em.0, format!("<:{}:{}>", em.0, em.1.get()), false)),
+                ),
+            ),
+        )
+        .await?;
     Ok(())
 }
 
@@ -72,7 +79,9 @@ async fn uwuify(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         msg.channel_id.say(&ctx.http, uwu).await?;
     } else if args.is_empty() {
         let mut data = ctx.data.write().await;
-        let map = data.get_mut::<LastMessageInChannel>().expect("No LastMessageInChannel in TypeMap");
+        let map = data
+            .get_mut::<LastMessageInChannel>()
+            .expect("No LastMessageInChannel in TypeMap");
         let old_message = map.get(&msg.channel_id);
         match old_message {
             Some(s) => {
@@ -80,7 +89,9 @@ async fn uwuify(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 msg.channel_id.say(&ctx.http, uwu).await?;
             }
             None => {
-                msg.channel_id.say(&ctx.http, "Could not find last message.").await?;
+                msg.channel_id
+                    .say(&ctx.http, "Could not find last message.")
+                    .await?;
             }
         }
     } else {
@@ -93,16 +104,24 @@ async fn uwuify(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 #[command]
 #[description("end tom")]
 async fn shutdown(ctx: &Context, msg: &Message, _: Args) -> CommandResult {
-    reply("<:tom:811324632082415626> bye <:tom:811324632082415626>", &msg, &ctx).await;
+    reply(
+        "<:tom:811324632082415626> bye <:tom:811324632082415626>",
+        &msg,
+        &ctx,
+    )
+    .await;
     std::process::exit(0);
 }
-
 
 #[command]
 #[description("display a random answer from the xp support applications")]
 async fn xp(ctx: &Context, msg: &Message, _: Args) -> CommandResult {
     lazy_static! {
-        static ref XP_RESPONSES: &'static Vec<Value> = CONFIG.get("xp").expect(CONFIG_ERR).as_array().expect(CONFIG_ERR);
+        static ref XP_RESPONSES: &'static Vec<Value> = CONFIG
+            .get("xp")
+            .expect(CONFIG_ERR)
+            .as_array()
+            .expect(CONFIG_ERR);
     }
     let index = rand::thread_rng().gen_range(0..XP_RESPONSES.len());
     let random_value = XP_RESPONSES[index].as_str().expect(CONFIG_ERR);
@@ -111,8 +130,7 @@ async fn xp(ctx: &Context, msg: &Message, _: Args) -> CommandResult {
 }
 
 #[help]
-#[individual_command_tip =
-"w i d e t o m\n\n\
+#[individual_command_tip = "w i d e t o m\n\n\
 tom moment."]
 #[command_not_found_text = "Could not find: `{}`."]
 #[max_levenshtein_distance(3)]

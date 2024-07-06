@@ -1,6 +1,10 @@
+// FIXME: Remove this allow and migrate to poise.
+#![allow(deprecated)]
+
 use std::collections::{HashMap, HashSet};
 use std::fs;
 
+use serenity::all::standard::Configuration;
 use serenity::client::Context;
 use serenity::framework::StandardFramework;
 use serenity::http::Http;
@@ -45,21 +49,25 @@ async fn main() {
         .expect("could not access the bot ID")
         .id;
 
-    let owners = HashSet::from([UserId(414755070161453076), UserId(265849018662387712)]);
+    let owners = HashSet::from([
+        UserId::new(414755070161453076),
+        UserId::new(265849018662387712),
+    ]);
 
     let framework = StandardFramework::new()
-        .configure(|c| {
-            c.with_whitespace(false)
-                .on_mention(Some(bot_id))
-                .prefix("<:tom:811324632082415626> ")
-                .delimiter(" ")
-                .owners(owners)
-        })
         .normal_message(normal_message)
         .help(&MY_HELP)
         .group(&GENERAL_GROUP)
         .group(&MEME_GROUP)
         .group(&ADMIN_GROUP);
+    framework.configure(
+        Configuration::new()
+            .with_whitespace(false)
+            .on_mention(Some(bot_id))
+            .prefix("<:tom:811324632082415626> ")
+            .delimiter(" ")
+            .owners(owners),
+    );
 
     // We don't really need all intents, but this is a small bot so we don't care.
     let intents = GatewayIntents::all();
