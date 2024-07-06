@@ -34,7 +34,7 @@ async fn main() {
     let token = fs::read_to_string(token_path).expect("Expected bot token in file 'bot_token'");
     let token = token.trim();
 
-    let http = Http::new_with_token(&token);
+    let http = Http::new(&token);
 
     http.get_current_application_info()
         .await
@@ -61,7 +61,9 @@ async fn main() {
         .group(&MEME_GROUP)
         .group(&ADMIN_GROUP);
 
-    let mut client = Client::builder(&token)
+    // We don't really need all intents, but this is a small bot so we don't care.
+    let intents = GatewayIntents::all();
+    let mut client = Client::builder(&token, intents)
         .event_handler(Handler)
         .framework(framework)
         .await

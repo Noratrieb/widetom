@@ -4,7 +4,7 @@ use lazy_static::lazy_static;
 use rand::Rng;
 use serenity::client::Context;
 use serenity::framework::standard::{Args, CommandGroup, CommandResult, help_commands, HelpOptions, macros::{command, group, help}};
-use serenity::model::{channel::Message};
+use serenity::model::channel::Message;
 use serenity::model::id::UserId;
 use serenity::utils::{content_safe, ContentSafeOptions};
 use toml::Value;
@@ -58,7 +58,7 @@ async fn say(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
             .clean_role(false)
     };
 
-    let content = content_safe(&ctx.cache, &args.rest(), &settings).await;
+    let content = content_safe(&ctx.cache, &args.rest(), &settings, &[]);
     msg.delete(&ctx.http).await?;
     msg.channel_id.say(&ctx.http, &content).await?;
     Ok(())
