@@ -12,13 +12,13 @@ COPY Cargo.toml Cargo.lock ./
 RUN mkdir src
 RUN echo "fn main() {}" > src/main.rs
 
-RUN cargo build --release -Zsparse-registry --target x86_64-unknown-linux-musl
+RUN cargo build --release --target x86_64-unknown-linux-musl
 
 COPY src ./src
 
 # now rebuild with the proper main
 RUN touch src/main.rs
-RUN cargo build --release -Zsparse-registry --target x86_64-unknown-linux-musl
+RUN cargo build --release --target x86_64-unknown-linux-musl
 
 ### RUN
 FROM scratch
