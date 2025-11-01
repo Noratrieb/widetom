@@ -1,7 +1,6 @@
 use std::collections::HashSet;
 
-use lazy_static::lazy_static;
-use rand::Rng;
+use rand::seq::IndexedRandom;
 use serenity::all::{CreateEmbed, CreateMessage};
 use serenity::client::Context;
 use serenity::framework::standard::{
@@ -12,11 +11,10 @@ use serenity::framework::standard::{
 use serenity::model::channel::Message;
 use serenity::model::id::UserId;
 use serenity::utils::{content_safe, ContentSafeOptions};
-use toml::Value;
 use uwuifier::uwuify_str_sse;
 
-use crate::general::{reply, CONFIG, CONFIG_ERR, REACTION_EMOTES};
-use crate::LastMessageInChannel;
+use crate::general::reply;
+use crate::{Config, LastMessageInChannel};
 
 #[group]
 #[commands(say, list)]
@@ -37,12 +35,15 @@ struct Admin;
 #[command]
 #[description("lists all the commands")]
 async fn list(ctx: &Context, msg: &Message, _: Args) -> CommandResult {
+    let data = ctx.data.read().await;
+    let config = data.get::<Config>().unwrap();
     msg.channel_id
         .send_message(
             &ctx.http,
             CreateMessage::new().embed(
                 CreateEmbed::new().title("Widetom reaction emotes").fields(
-                    REACTION_EMOTES
+                    config
+                        .emotes
                         .iter()
                         .map(|em| (em.0, format!("<:{}:{}>", em.0, em.1.get()), false)),
                 ),
@@ -116,15 +117,12 @@ async fn shutdown(ctx: &Context, msg: &Message, _: Args) -> CommandResult {
 #[command]
 #[description("display a random answer from the xp support applications")]
 async fn xp(ctx: &Context, msg: &Message, _: Args) -> CommandResult {
-    lazy_static! {
-        static ref XP_RESPONSES: &'static Vec<Value> = CONFIG
-            .get("xp")
-            .expect(CONFIG_ERR)
-            .as_array()
-            .expect(CONFIG_ERR);
-    }
-    let index = rand::thread_rng().gen_range(0..XP_RESPONSES.len());
-    let random_value = XP_RESPONSES[index].as_str().expect(CONFIG_ERR);
+    let data = ctx.data.read().await;
+    let config = data.get::<Config>().unwrap();
+
+    let Some(random_value) = config.xp.choose(&mut rand::rng()) else {
+        return Ok(());
+    };
     msg.channel_id.say(&ctx.http, random_value).await?;
     Ok(())
 }

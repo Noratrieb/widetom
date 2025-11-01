@@ -5,6 +5,7 @@ use std::collections::{HashMap, HashSet};
 use std::fs;
 
 use serenity::all::standard::Configuration;
+use serenity::all::EmojiId;
 use serenity::client::Context;
 use serenity::framework::StandardFramework;
 use serenity::http::Http;
@@ -17,10 +18,27 @@ use crate::general::normal_message;
 mod commands;
 mod general;
 
-pub struct LastMessageInChannel;
+#[derive(serde::Deserialize)]
+struct ConfigFile {
+    emotes: Vec<(String, EmojiId)>,
+    responses: Vec<(String, String)>,
+    xp: Vec<String>,
+}
+
+struct Config {
+    emotes: HashMap<String, EmojiId>,
+    responses: HashMap<String, String>,
+    xp: Vec<String>,
+}
+
+struct LastMessageInChannel;
 
 impl TypeMapKey for LastMessageInChannel {
     type Value = HashMap<ChannelId, String>;
+}
+
+impl TypeMapKey for Config {
+    type Value = Self;
 }
 
 struct Handler;
@@ -34,6 +52,17 @@ impl EventHandler for Handler {
 
 #[tokio::main]
 async fn main() {
+    let config_path = std::env::var("CONFIG_PATH").unwrap_or_else(|_| "config.toml".to_string());
+    let config = fs::read_to_string(config_path)
+        .expect("Config file not found. Add 'config.toml' to this directory");
+    let config = toml::from_str::<ConfigFile>(&config).expect("invalid config file");
+
+    let config = Config {
+        emotes: config.emotes.into_iter().collect(),
+        responses: config.responses.into_iter().collect(),
+        xp: config.xp,
+    };
+
     let token_path = std::env::var("BOT_TOKEN_PATH").unwrap_or_else(|_| "bot_token".to_string());
     let token = fs::read_to_string(token_path).expect("Expected bot token in file 'bot_token'");
     let token = token.trim();
@@ -80,6 +109,7 @@ async fn main() {
     {
         let mut data = client.data.write().await;
         data.insert::<LastMessageInChannel>(HashMap::default());
+        data.insert::<Config>(config);
     }
 
     if let Err(why) = client.start().await {
