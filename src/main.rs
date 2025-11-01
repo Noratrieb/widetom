@@ -12,7 +12,7 @@ use serenity::http::Http;
 use serenity::model::id::{ChannelId, UserId};
 use serenity::{async_trait, model::gateway::Ready, prelude::*};
 
-use crate::commands::{ADMIN_GROUP, GENERAL_GROUP, MEME_GROUP, MY_HELP};
+use crate::commands::{GENERAL_GROUP, MEME_GROUP, MY_HELP};
 use crate::general::normal_message;
 
 mod commands;
@@ -67,7 +67,7 @@ async fn main() {
     let token = fs::read_to_string(token_path).expect("Expected bot token in file 'bot_token'");
     let token = token.trim();
 
-    let http = Http::new(&token);
+    let http = Http::new(token);
 
     http.get_current_application_info()
         .await
@@ -87,8 +87,7 @@ async fn main() {
         .normal_message(normal_message)
         .help(&MY_HELP)
         .group(&GENERAL_GROUP)
-        .group(&MEME_GROUP)
-        .group(&ADMIN_GROUP);
+        .group(&MEME_GROUP);
     framework.configure(
         Configuration::new()
             .with_whitespace(false)
@@ -100,7 +99,7 @@ async fn main() {
 
     // We don't really need all intents, but this is a small bot so we don't care.
     let intents = GatewayIntents::all();
-    let mut client = Client::builder(&token, intents)
+    let mut client = Client::builder(token, intents)
         .event_handler(Handler)
         .framework(framework)
         .await

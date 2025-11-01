@@ -13,7 +13,7 @@ pub async fn normal_message(ctx: &Context, msg: &Message) {
     let map = data
         .get_mut::<LastMessageInChannel>()
         .expect("LastMessageInChannel not found");
-    map.insert(msg.channel_id.clone(), msg.content.clone());
+    map.insert(msg.channel_id, msg.content.clone());
 
     let config = data.get::<Config>().unwrap();
 
@@ -33,13 +33,13 @@ pub async fn normal_message(ctx: &Context, msg: &Message) {
                 .as_str()
                 .parse::<u32>()
                 .expect("matched regex, so it is valid");
-            reply(&*format!("<https://nhentai.net/g/{}/>", number), &msg, &ctx).await;
+            reply(&format!("<https://nhentai.net/g/{}/>", number), msg, ctx).await;
         }
     }
 
     for (trigger, answer) in config.responses.iter() {
         if msg.content.to_lowercase() == *trigger {
-            reply(answer, &msg, &ctx).await;
+            reply(answer, msg, ctx).await;
         }
     }
 
